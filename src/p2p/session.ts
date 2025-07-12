@@ -1722,6 +1722,14 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
                         rootP2PLogger.debug(`Station Handle DATA ${P2PDataType[message.dataType]} - CMD_NOTIFY_PAYLOAD`, { stationSN: this.rawStation.station_sn, payload: data.toString() });
                         const json: CmdNotifyPayload = parseJSON(getNullTerminatedString(data, "utf8"), rootP2PLogger) as CmdNotifyPayload;
                         if (json !== undefined) {
+                            
+                            // NEW LOG: Log the parsed JSON payload itself
+                            rootP2PLogger.debug(`Parsed CMD_NOTIFY_PAYLOAD JSON`, {
+                                stationSN: this.rawStation.station_sn,
+                                jsonCommand: json.cmd,
+                                jsonPayload: JSON.stringify(json.payload) // Stringify to see the content of the nested payload
+                            });
+
                             if (Device.isLockWifi(this.rawStation.device_type, this.rawStation.station_sn)) {
                                 //TODO: Implement notification payload or T8520
                                 if (json.cmd === CommandType.P2P_ADD_PW || json.cmd === CommandType.P2P_QUERY_PW || json.cmd === CommandType.P2P_GET_LOCK_PARAM || json.cmd === CommandType.P2P_GET_USER_AND_PW_ID) {
@@ -1740,6 +1748,15 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
                                 } else if (json.cmd === CommandType.P2P_QUERY_STATUS_IN_LOCK) {
                                     // Example: {"code":0,"slBattery":"82","slState":"4","trigger":2}
                                     const payload: ESLAdvancedLockStatusNotification = json.payload as ESLAdvancedLockStatusNotification;
+
+                                    // NEW LOG: Log before emitting parameter for this lock type
+                                    rootP2PLogger.debug(`Emitting parameter for LockWifi (T8506/T8502 etc.)`, {
+                                        stationSN: this.rawStation.station_sn,
+                                        channel: message.channel,
+                                        battery: payload.slBattery,
+                                        status: payload.slState,
+                                        source: "P2P_QUERY_STATUS_IN_LOCK"
+                                    });
                                     this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_QUERY_BATTERY_LEVEL, payload.slBattery);
                                     this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_QUERY_STATUS, payload.slState);
                                 } else {
@@ -1748,6 +1765,16 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
                             } else if (json.cmd === CommandType.P2P_QUERY_STATUS_IN_LOCK) {
                                 // Example: {"code":0,"slBattery":"99","slState":"4","slOpenDirection":"1","trigger":2}
                                 const payload: ESLAdvancedLockStatusNotificationT8530 = json.payload as ESLAdvancedLockStatusNotificationT8530;
+                                // NEW LOG: Log before emitting parameter for T8530 lock type
+                                rootP2PLogger.debug(`Emitting parameter for LockWifiR10/R20 (T8530 etc.)`, {
+                                    stationSN: this.rawStation.station_sn,
+                                    channel: message.channel,
+                                    battery: payload.slBattery,
+                                    status: payload.slState,
+                                    openDirection: payload.slOpenDirection,
+                                    source: "P2P_QUERY_STATUS_IN_LOCK_T8530"
+                                });
+
                                 this.emit("parameter", message.channel, CommandType.CMD_GET_BATTERY, payload.slBattery);
                                 this.emit("parameter", message.channel, CommandType.CMD_DOORLOCK_GET_STATE, payload.slState);
                                 this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_NIGHT_VISION_SIDE, payload.slOpenDirection);
@@ -1878,6 +1905,20 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
                                     try {
                                         const fac = BleCommandFactory.parseSmartLock(payload.lock_payload);
                                         rootP2PLogger.debug(`Handle DATA ${P2PDataType[message.dataType]} - CMD_NOTIFY_PAYLOAD Smart Lock - Received`, { stationSN: this.rawStation.station_sn, fac: fac.toString() });
+
+                                        // NEW LOG: Critical info from the parsed payload
+                                        rootP2PLogger.debug(`Smart Lock P2P Payload details (CMD_TRANSFER_PAYLOAD)`, {
+                                            stationSN: this.rawStation.station_sn,
+                                            deviceSNinPayload: payload.dev_sn, // <--- **THIS IS THE KEY VALUE**
+                                            channel: message.channel, // Channel from the P2P message
+                                            commandCode: fac.getCommandCode(),
+                                            dataType: fac.getDataType(),
+                                            isEncrypted: fac.isEncrypted(),
+                                            payloadTime: payload.time, // Useful for key generation
+                                            payloadSource: "CMD_TRANSFER_PAYLOAD"
+                                        });
+
+
                                         if (!fac.isPartial()) {
                                             let data = fac.getData();
                                             if (data) {
