@@ -20,7 +20,7 @@ export interface P2PClientProtocolEvents {
     "livestream error": (channel: number, error: Error) => void;
     "wifi rssi": (channel: number, rssi: number) => void;
     "rtsp url": (channel: number, rtspUrl: string) => void;
-    "parameter": (channel: number, param: number, value: string) => void;
+    "parameter": (deviceSN: string, param: number, value: string) => void;
     "timeout": () => void;
     "runtime state": (channel: number, batteryLevel: number, temperature: number) => void;
     "charging state": (channel: number, chargeType: number, batteryLevel: number) => void;
