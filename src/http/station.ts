@@ -622,16 +622,39 @@ export class Station extends TypedEmitter<StationEvents> {
     }
 
     private onParameter(channel: number, param: number, value: string): void {
-        const params: RawValues = {};
-        const parsedValue = ParameterHelper.readValue(this.getSerial(), param, value, rootHTTPLogger);
+        const stationSN = this.getSerial(); // Get the station's serial number for context
+        const parsedValue = ParameterHelper.readValue(stationSN, param, value, rootHTTPLogger); // Use stationSN for clarity in logs
+
+        // --- NEW LOGGING: Log incoming event details ---
+        rootHTTPLogger.debug(`Station.onParameter: Received parameter event details`, {
+            stationSN: stationSN,
+            channel: channel,
+            paramType: param, // The numeric ID of the parameter/property
+            paramValue: value,
+            parsedValue: parsedValue // The value after initial parsing
+        });
+
+        // --- NEW LOGGING: Capture and log the result of _getDeviceSerial before emission ---
+        const resolvedDeviceSN = this._getDeviceSerial(channel); 
+
+        rootHTTPLogger.debug(`Station.onParameter: Result of _getDeviceSerial for channel`, {
+            stationSN: stationSN,
+            channel: channel,
+            resolvedDeviceSN: resolvedDeviceSN // <--- THIS IS THE KEY VALUE TO CHECK!
+        });
+        // --- END NEW LOGGING ---
+
         if (parsedValue !== undefined) {
+            const params: RawValues = {};
             params[param] = {
                 value: parsedValue,
                 source: "p2p"
             };
-            this.emit("raw device property changed", this._getDeviceSerial(channel), params);
+            // This line remains unchanged, but now we've logged what resolvedDeviceSN contains
+            this.emit("raw device property changed", resolvedDeviceSN, params);
         }
     }
+
 
     private onAlarmDelay(alarmDelayEvent: AlarmEvent, alarmDelay: number): void {
         this.emit("alarm delay event", this, alarmDelayEvent, alarmDelay);
