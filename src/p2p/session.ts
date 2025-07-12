@@ -1757,8 +1757,8 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
                                         status: payload.slState,
                                         source: "P2P_QUERY_STATUS_IN_LOCK"
                                     });
-                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_QUERY_BATTERY_LEVEL, payload.slBattery);
-                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_QUERY_STATUS, payload.slState);
+                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_QUERY_BATTERY_LEVEL, payload.slBattery);
+                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_QUERY_STATUS, payload.slState);
                                 } else {
                                     rootP2PLogger.debug(`Handle DATA ${P2PDataType[message.dataType]} - CMD_NOTIFY_PAYLOAD - Not implemented`, { stationSN: this.rawStation.station_sn, commandIdName: CommandType[json.cmd], commandId: json.cmd, message: data.toString() });
                                 }
@@ -1775,9 +1775,9 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
                                     source: "P2P_QUERY_STATUS_IN_LOCK_T8530"
                                 });
 
-                                this.emit("parameter", message.channel, CommandType.CMD_GET_BATTERY, payload.slBattery);
-                                this.emit("parameter", message.channel, CommandType.CMD_DOORLOCK_GET_STATE, payload.slState);
-                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_NIGHT_VISION_SIDE, payload.slOpenDirection);
+                                this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_GET_BATTERY, payload.slBattery);
+                                this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_DOORLOCK_GET_STATE, payload.slState);
+                                this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_NIGHT_VISION_SIDE, payload.slOpenDirection);
                             } else if (json.cmd === CommandType.CMD_DOORLOCK_P2P_SEQ) {
                                 if (Device.isLockWifi(this.rawStation.devices[0]?.device_type, this.rawStation.devices[0]?.device_sn) || Device.isLockWifiNoFinger(this.rawStation.devices[0]?.device_type)) {
                                     const payload: ESLStationP2PThroughData = json.payload as ESLStationP2PThroughData;
@@ -1819,8 +1819,8 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
                                         switch (payload.lock_cmd) {
                                             case ESLBleCommand.NOTIFY:
                                                 const notifyBuffer = Buffer.from(payload.lock_payload, "hex");
-                                                this.emit("parameter", message.channel, CommandType.CMD_GET_BATTERY, notifyBuffer.subarray(3, 4).readInt8().toString());
-                                                this.emit("parameter", message.channel, CommandType.CMD_DOORLOCK_GET_STATE, notifyBuffer.subarray(6, 7).readInt8().toString());
+                                                this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_GET_BATTERY, notifyBuffer.subarray(3, 4).readInt8().toString());
+                                                this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_DOORLOCK_GET_STATE, notifyBuffer.subarray(6, 7).readInt8().toString());
                                                 break;
                                             default:
                                                 rootP2PLogger.debug(`Handle DATA ${P2PDataType[message.dataType]} - CMD_DOORLOCK_DATA_PASS_THROUGH - Not implemented`, { stationSN: this.rawStation.station_sn, message: data.toString() });
@@ -1860,22 +1860,22 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
                                             switch (fac.getCommandCode()) {
                                                 case ESLBleCommand.QUERY_STATUS_IN_LOCK:
                                                 case ESLBleCommand.NOTIFY:
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_QUERY_BATTERY_LEVEL, parsePayload.readInt8(BleParameterIndex.ONE).toString());
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_QUERY_STATUS, parsePayload.readInt8(BleParameterIndex.TWO).toString());
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_QUERY_BATTERY_LEVEL, parsePayload.readInt8(BleParameterIndex.ONE).toString());
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_QUERY_STATUS, parsePayload.readInt8(BleParameterIndex.TWO).toString());
                                                     break;
                                                 case ESLBleCommand.GET_LOCK_PARAM:
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_LOCK_SOUND, parsePayload.readInt8(BleParameterIndex.ONE).toString());
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_AUTO_LOCK, parsePayload.readInt8(BleParameterIndex.TWO).toString());
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_AUTO_LOCK_TIMER, parsePayload.readUint16LE(BleParameterIndex.THREE).toString());
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE, parsePayload.readInt8(BleParameterIndex.FOUR).toString());
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE_STARTTIME, parsePayload.readStringHex(BleParameterIndex.FIVE));
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE_ENDTIME, parsePayload.readStringHex(BleParameterIndex.SIX));
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_ONE_TOUCH_LOCK, parsePayload.readInt8(BleParameterIndex.SEVEN).toString());
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_WRONG_TRY_PROTECT, parsePayload.readInt8(BleParameterIndex.EIGHT).toString());
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_WRONG_TRY_LOCKDOWN, parsePayload.readUint16LE(BleParameterIndex.NINE).toString());
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_WRONG_TRY_ATTEMPTS, parsePayload.readInt8(BleParameterIndex.TEN).toString());
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_SCRAMBLE_PASSCODE, parsePayload.readInt8(BleParameterIndex.ELEVEN).toString());
-                                                    //this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_LOG, parsePayload.readInt8(BleParameterIndex.TWELVE).toString());
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_LOCK_SOUND, parsePayload.readInt8(BleParameterIndex.ONE).toString());
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_AUTO_LOCK, parsePayload.readInt8(BleParameterIndex.TWO).toString());
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_AUTO_LOCK_TIMER, parsePayload.readUint16LE(BleParameterIndex.THREE).toString());
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE, parsePayload.readInt8(BleParameterIndex.FOUR).toString());
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE_STARTTIME, parsePayload.readStringHex(BleParameterIndex.FIVE));
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE_ENDTIME, parsePayload.readStringHex(BleParameterIndex.SIX));
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_ONE_TOUCH_LOCK, parsePayload.readInt8(BleParameterIndex.SEVEN).toString());
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_WRONG_TRY_PROTECT, parsePayload.readInt8(BleParameterIndex.EIGHT).toString());
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_WRONG_TRY_LOCKDOWN, parsePayload.readUint16LE(BleParameterIndex.NINE).toString());
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_WRONG_TRY_ATTEMPTS, parsePayload.readInt8(BleParameterIndex.TEN).toString());
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_SCRAMBLE_PASSCODE, parsePayload.readInt8(BleParameterIndex.ELEVEN).toString());
+                                                    //this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTLOCK_LOG, parsePayload.readInt8(BleParameterIndex.TWELVE).toString());
                                                     //this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_WIFI_STATUS, parsePayload.readInt8(BleParameterIndex.THIRTEEN).toString());
                                                     break;
                                                 case ESLBleCommand.ADD_PW:
@@ -2052,9 +2052,9 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
                                                         5: Unlocked by Dual Unlock
                                                 */
                                                 if (eventValues.action === 0) {
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTSAFE_LOCK_STATUS, "0");
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTSAFE_LOCK_STATUS, "0");
                                                 } else if (eventValues.action === 1) {
-                                                    this.emit("parameter", message.channel, CommandType.CMD_SMARTSAFE_LOCK_STATUS, "1");
+                                                    this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SMARTSAFE_LOCK_STATUS, "1");
                                                 } else if (eventValues.action === 2) {
                                                     this.emit("jammed", message.channel);
                                                 } else if (eventValues.action === 3) {
@@ -2142,7 +2142,7 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
                     // Received for station managed devices when snooze time ends
                     try {
                         rootP2PLogger.debug(`Handle DATA ${P2PDataType[message.dataType]} - CMD_SET_SNOOZE_MODE`, { stationSN: this.rawStation.station_sn, payload: Buffer.from(data.toString(), "base64").toString() });
-                        this.emit("parameter", message.channel, CommandType.CMD_SET_SNOOZE_MODE, data.toString());
+                        this.emit("parameter", this.deviceSNs[message.channel]?.sn ?? this.rawStation.station_sn, CommandType.CMD_SET_SNOOZE_MODE, data.toString());
                     } catch (err) {
                         const error = ensureError(err);
                         rootP2PLogger.error(`Handle DATA ${P2PDataType[message.dataType]} - CMD_SET_SNOOZE_MODE - Error`, { error: getError(error), stationSN: this.rawStation.station_sn, message: { seqNo: message.seqNo, channel: message.channel, commandType: CommandType[message.commandId], signCode: message.signCode, type: message.type, dataType: P2PDataType[message.dataType], data: message.data.toString("hex") } });

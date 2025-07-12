@@ -55,7 +55,7 @@ class Station extends tiny_typed_emitter_1.TypedEmitter {
         this.p2pSession.on("rtsp livestream started", (channel) => this.onStartRTSPLivestream(channel));
         this.p2pSession.on("rtsp livestream stopped", (channel) => this.onStopRTSPLivestream(channel));
         this.p2pSession.on("rtsp url", (channel, rtspUrl) => this.onRTSPUrl(channel, rtspUrl));
-        this.p2pSession.on("parameter", (channel, param, value) => this.onParameter(channel, param, value));
+        this.p2pSession.on("parameter", (deviceSN, param, value) => this.onParameter(deviceSN, param, value));
         this.p2pSession.on("runtime state", (channel, batteryLevel, temperature) => this.onRuntimeState(channel, batteryLevel, temperature));
         this.p2pSession.on("charging state", (channel, chargeType, batteryLevel) => this.onChargingState(channel, chargeType, batteryLevel));
         this.p2pSession.on("floodlight manual switch", (channel, enabled) => this.onFloodlightManualSwitch(channel, enabled));
@@ -569,15 +569,33 @@ class Station extends tiny_typed_emitter_1.TypedEmitter {
     onRTSPUrl(channel, rtspUrl) {
         this.emit("rtsp url", this, channel, rtspUrl);
     }
-    onParameter(channel, param, value) {
-        const params = {};
-        const parsedValue = parameter_1.ParameterHelper.readValue(this.getSerial(), param, value, logging_1.rootHTTPLogger);
+    onParameter(deviceSN, param, value) {
+        const stationSN = this.getSerial(); // Get the station's serial number for context
+        const parsedValue = parameter_1.ParameterHelper.readValue(stationSN, param, value, logging_1.rootHTTPLogger); // Use stationSN for clarity in logs
+        // --- NEW LOGGING: Log incoming event details ---
+        logging_1.rootHTTPLogger.debug(`Station.onParameter: Received parameter event details`, {
+            stationSN: stationSN,
+            deviceSN: deviceSN,
+            paramType: param, // The numeric ID of the parameter/property
+            paramValue: value,
+            parsedValue: parsedValue // The value after initial parsing
+        });
+        // --- NEW LOGGING: Capture and log the result of _getDeviceSerial before emission ---
+        // const resolvedDeviceSN = this._getDeviceSerial(channel); 
+        // rootHTTPLogger.debug(`Station.onParameter: Result of _getDeviceSerial for channel`, {
+        //     stationSN: stationSN,
+        //     channel: channel,
+        //     resolvedDeviceSN: resolvedDeviceSN // <--- THIS IS THE KEY VALUE TO CHECK!
+        // });
+        // --- END NEW LOGGING ---
         if (parsedValue !== undefined) {
+            const params = {};
             params[param] = {
                 value: parsedValue,
                 source: "p2p"
             };
-            this.emit("raw device property changed", this._getDeviceSerial(channel), params);
+            // Pass the already correct deviceSN directly
+            this.emit("raw device property changed", deviceSN, params); // Changed 'resolvedDeviceSN' to 'deviceSN'
         }
     }
     onAlarmDelay(alarmDelayEvent, alarmDelay) {
@@ -4758,7 +4776,7 @@ class Station extends tiny_typed_emitter_1.TypedEmitter {
             command: commandData
         });
     }
-    startLivestream(device, videoCodec = types_2.VideoCodec.H264, skipLiveStreamingCheck = true) {
+    startLivestream(device, videoCodec = types_2.VideoCodec.H264) {
         const commandData = {
             name: types_1.CommandName.DeviceStartLivestream,
             value: videoCodec
@@ -4769,7 +4787,7 @@ class Station extends tiny_typed_emitter_1.TypedEmitter {
         if (!device.hasCommand(types_1.CommandName.DeviceStartLivestream)) {
             throw new error_1.NotSupportedError("This functionality is not implemented or supported by this device", { context: { device: device.getSerial(), station: this.getSerial(), commandName: commandData.name, commandValue: commandData.value } });
         }
-        if (!skipLiveStreamingCheck && this.isLiveStreaming(device)) {
+        if (this.isLiveStreaming(device)) {
             throw new error_2.LivestreamAlreadyRunningError("Livestream for device is already running", { context: { device: device.getSerial(), station: this.getSerial(), commandName: commandData.name, commandValue: commandData.value } });
         }
         logging_1.rootHTTPLogger.debug(`Station start livestream - sending command`, { stationSN: this.getSerial(), deviceSN: device.getSerial(), videoCodec: videoCodec });
