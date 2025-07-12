@@ -66,7 +66,7 @@ export class Station extends TypedEmitter<StationEvents> {
         this.p2pSession.on("rtsp livestream started", (channel: number) => this.onStartRTSPLivestream(channel));
         this.p2pSession.on("rtsp livestream stopped", (channel: number) => this.onStopRTSPLivestream(channel));
         this.p2pSession.on("rtsp url", (channel: number, rtspUrl: string) => this.onRTSPUrl(channel, rtspUrl));
-        this.p2pSession.on("parameter", (channel: number, param: number, value: string) => this.onParameter(channel, param, value));
+        this.p2pSession.on("parameter", (deviceSN: string, param: number, value: string) => this.onParameter(deviceSN, param, value));
         this.p2pSession.on("runtime state", (channel: number, batteryLevel: number, temperature: number) => this.onRuntimeState(channel, batteryLevel, temperature));
         this.p2pSession.on("charging state", (channel: number, chargeType: number, batteryLevel: number) => this.onChargingState(channel, chargeType, batteryLevel));
         this.p2pSession.on("floodlight manual switch", (channel: number, enabled: boolean) => this.onFloodlightManualSwitch(channel, enabled));
