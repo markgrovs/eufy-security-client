@@ -1952,21 +1952,24 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
                                                         switch (fac.getCommandCode()) {
                                                             case SmartLockBleCommandFunctionType2.QUERY_STATUS_IN_LOCK:
                                                             case SmartLockBleCommandFunctionType2.NOTIFY:
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_QUERY_BATTERY_LEVEL, parsePayload.readInt8(BleParameterIndex.ONE).toString());
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_QUERY_STATUS, parsePayload.readInt8(BleParameterIndex.TWO).toString());
+                                                                const batteryLevel = parsePayload.readInt8(BleParameterIndex.ONE).toString();
+                                                                const lockStatus = parsePayload.readInt8(BleParameterIndex.TWO).toString();
+
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_QUERY_BATTERY_LEVEL, batteryLevel);
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_QUERY_STATUS, lockStatus);
                                                                 break;
                                                             case SmartLockBleCommandFunctionType2.GET_LOCK_PARAM:
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_AUTO_LOCK, parsePayload.readInt8(BleParameterIndex.ONE).toString());
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_AUTO_LOCK_TIMER, parsePayload.readUint16LE(BleParameterIndex.TWO).toString());
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE, parsePayload.readInt8(BleParameterIndex.THREE).toString());
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE_STARTTIME, parsePayload.readStringHex(BleParameterIndex.FOUR));
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE_ENDTIME, parsePayload.readStringHex(BleParameterIndex.FIVE));
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_ONE_TOUCH_LOCK, parsePayload.readInt8(BleParameterIndex.SIX).toString());
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_SCRAMBLE_PASSCODE, parsePayload.readInt8(BleParameterIndex.SEVEN).toString());
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_WRONG_TRY_PROTECT, parsePayload.readInt8(BleParameterIndex.EIGHT).toString());
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_WRONG_TRY_ATTEMPTS, parsePayload.readInt8(BleParameterIndex.NINE).toString());
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_WRONG_TRY_LOCKDOWN, parsePayload.readUint16LE(BleParameterIndex.TEN).toString());
-                                                                this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_LOCK_SOUND, parsePayload.readInt8(BleParameterIndex.ELEVEN).toString());
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_AUTO_LOCK, parsePayload.readInt8(BleParameterIndex.ONE).toString());
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_AUTO_LOCK_TIMER, parsePayload.readUint16LE(BleParameterIndex.TWO).toString());
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE, parsePayload.readInt8(BleParameterIndex.THREE).toString());
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE_STARTTIME, parsePayload.readStringHex(BleParameterIndex.FOUR));
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_AUTO_LOCK_SCHEDULE_ENDTIME, parsePayload.readStringHex(BleParameterIndex.FIVE));
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_ONE_TOUCH_LOCK, parsePayload.readInt8(BleParameterIndex.SIX).toString());
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_SCRAMBLE_PASSCODE, parsePayload.readInt8(BleParameterIndex.SEVEN).toString());
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_WRONG_TRY_PROTECT, parsePayload.readInt8(BleParameterIndex.EIGHT).toString());
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_WRONG_TRY_ATTEMPTS, parsePayload.readInt8(BleParameterIndex.NINE).toString());
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_WRONG_TRY_LOCKDOWN, parsePayload.readUint16LE(BleParameterIndex.TEN).toString());
+                                                                this.emit("parameter", payload.dev_sn, CommandType.CMD_SMARTLOCK_LOCK_SOUND, parsePayload.readInt8(BleParameterIndex.ELEVEN).toString());
                                                                 //this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_WIFI_STATUS, parsePayload.readInt8(BleParameterIndex.TWELVE).toString());
                                                                 //this.emit("parameter", message.channel, CommandType.CMD_SMARTLOCK_LOG, parsePayload.readInt8(BleParameterIndex.THIRTEEN).toString());
                                                                 break;

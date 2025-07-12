@@ -621,27 +621,27 @@ export class Station extends TypedEmitter<StationEvents> {
         this.emit("rtsp url", this, channel, rtspUrl);
     }
 
-    private onParameter(channel: number, param: number, value: string): void {
+    private onParameter(deviceSN: string, param: number, value: string): void {
         const stationSN = this.getSerial(); // Get the station's serial number for context
         const parsedValue = ParameterHelper.readValue(stationSN, param, value, rootHTTPLogger); // Use stationSN for clarity in logs
 
         // --- NEW LOGGING: Log incoming event details ---
         rootHTTPLogger.debug(`Station.onParameter: Received parameter event details`, {
             stationSN: stationSN,
-            channel: channel,
+            deviceSN: deviceSN,
             paramType: param, // The numeric ID of the parameter/property
             paramValue: value,
             parsedValue: parsedValue // The value after initial parsing
         });
 
         // --- NEW LOGGING: Capture and log the result of _getDeviceSerial before emission ---
-        const resolvedDeviceSN = this._getDeviceSerial(channel); 
+        // const resolvedDeviceSN = this._getDeviceSerial(channel); 
 
-        rootHTTPLogger.debug(`Station.onParameter: Result of _getDeviceSerial for channel`, {
-            stationSN: stationSN,
-            channel: channel,
-            resolvedDeviceSN: resolvedDeviceSN // <--- THIS IS THE KEY VALUE TO CHECK!
-        });
+        // rootHTTPLogger.debug(`Station.onParameter: Result of _getDeviceSerial for channel`, {
+        //     stationSN: stationSN,
+        //     channel: channel,
+        //     resolvedDeviceSN: resolvedDeviceSN // <--- THIS IS THE KEY VALUE TO CHECK!
+        // });
         // --- END NEW LOGGING ---
 
         if (parsedValue !== undefined) {
@@ -650,8 +650,8 @@ export class Station extends TypedEmitter<StationEvents> {
                 value: parsedValue,
                 source: "p2p"
             };
-            // This line remains unchanged, but now we've logged what resolvedDeviceSN contains
-            this.emit("raw device property changed", resolvedDeviceSN, params);
+            // Pass the already correct deviceSN directly
+            this.emit("raw device property changed", deviceSN, params); // Changed 'resolvedDeviceSN' to 'deviceSN'
         }
     }
 
