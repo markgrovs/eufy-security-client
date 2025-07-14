@@ -1004,7 +1004,7 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
         } else if (hasHeader(msg, ResponseMessageType.END)) {
             // Connection is closed by device
             rootP2PLogger.debug(`Received message - END`, { stationSN: this.rawStation.station_sn, remoteAddress: rinfo.address, remotePort: rinfo.port });
-            this.onClose();
+            // this.onClose();  /// MG TEST how removing the onClose call effects the behavior
             return;
         } else if (hasHeader(msg, ResponseMessageType.ACK)) {
             // Device ACK a message from our side
