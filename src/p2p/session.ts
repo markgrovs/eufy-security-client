@@ -2697,7 +2697,7 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
 
         this.channel = Station.getChannel(value.device_type);
 
-        if (this.rawStation.devices?.length > 0) {
+        if (Device.hasBattery(this.rawStation.device_type)) {
             if (!this.energySavingDevice) {
                 for (const device of this.rawStation.devices) {
                     if (device.device_sn === this.rawStation.station_sn && Device.hasBattery(device.device_type)) {
