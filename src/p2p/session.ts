@@ -2698,6 +2698,7 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
         this.channel = Station.getChannel(value.device_type);
 
         if (Device.hasBattery(this.rawStation.device_type)) {
+            rootP2PLogger.debug(`Identified battery device ${this.rawStation.station_sn} => activate p2p keepalive command`);
             if (!this.energySavingDevice) {
                 // Add check here to ensure devices exists
                 if (this.rawStation.devices) {
@@ -2713,6 +2714,7 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
             }
         } else {
             this.energySavingDevice = false;
+            rootP2PLogger.debug(`Identified non-battery device ${this.rawStation.station_sn} => deactivate p2p keepalive command`);
         }
         if (this.rawStation.devices) {
             for (const device of this.rawStation.devices) {
