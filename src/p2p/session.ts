@@ -2699,10 +2699,13 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
 
         if (Device.hasBattery(this.rawStation.device_type)) {
             if (!this.energySavingDevice) {
-                for (const device of this.rawStation.devices) {
-                    if (device.device_sn === this.rawStation.station_sn && Device.hasBattery(device.device_type)) {
-                        this.energySavingDevice = true;
-                        break;
+                // Add check here to ensure devices exists
+                if (this.rawStation.devices) {
+                    for (const device of this.rawStation.devices) {
+                        if (device.device_sn === this.rawStation.station_sn && Device.hasBattery(device.device_type)) {
+                            this.energySavingDevice = true;
+                            break;
+                        }
                     }
                 }
                 if (this.energySavingDevice)
@@ -2711,13 +2714,14 @@ export class P2PClientProtocol extends TypedEmitter<P2PClientProtocolEvents> {
         } else {
             this.energySavingDevice = false;
         }
-        if (this.rawStation.devices)
+        if (this.rawStation.devices) {
             for (const device of this.rawStation.devices) {
                 this.deviceSNs[device.device_channel] = {
                     sn: device.device_sn,
                     adminUserId: this.rawStation.member.admin_user_id
                 };
             }
+        }
     }
 
     private initializeTalkbackStream(channel = 0): void {
